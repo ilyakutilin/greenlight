@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"greenlight.mazavrbazavr.ru/internal/data"
+	"greenlight.mazavrbazavr.ru/internal/validator"
 )
 
 // Handler for the "POST /v1/movies" endpoint. Method of the application struct.
@@ -21,12 +22,35 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		Genres  []string     `json:"genres"`
 	}
 
-	// Use the new readJSON() helper to decode the request body into the input struct.
+	// Use the readJSON() helper to decode the request body into the input struct.
 	// If this returns an error we send the client the error message along with a 400
 	// Bad Request status code via the badRequestResponse() helper.
 	err := app.readJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	// Copy the values from the input struct to a new Movie struct.
+	// We are not decoding into the Movie struct directly because if the client provides
+	// ID and/or Version fields in their request such vaues would be decoded without any
+	// error, and that's not the intended behavior.
+	movie := &data.Movie{
+		Title:   input.Title,
+		Year:    input.Year,
+		Runtime: input.Runtime,
+		Genres:  input.Genres,
+	}
+
+	// Initialize a new Validator instance.
+	v := validator.New()
+
+	// Call the ValidateMovie() function and return a response containing the errors if
+	// any of the checks fail. Use the Valid() method to see if any of the checks
+	// failed. If they did, then use the failedValidationResponse() helper
+	// to send a response to the client, passing in the v.Errors map.
+	if data.ValidateMovie(v, movie); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
