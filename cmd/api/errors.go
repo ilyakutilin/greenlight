@@ -61,3 +61,13 @@ func (app *application) methodNotAllowedResponse(
 	message := fmt.Sprintf("the %s method is not supported for this resource", r.Method)
 	app.errorResponse(w, r, http.StatusMethodNotAllowed, message)
 }
+
+// Used to send a 400 Bad Request status code and JSON response to the client.
+// Method of the application struct.
+func (app *application) badRequestResponse(
+	w http.ResponseWriter,
+	r *http.Request,
+	err error,
+) {
+	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
+}
