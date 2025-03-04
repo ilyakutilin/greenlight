@@ -7,7 +7,13 @@ import (
 
 // Handler returning a simple healthcheck response. A method of the application struct.
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "status: available")
-	fmt.Fprintf(w, "environment: %s\n", app.config.env)
-	fmt.Fprintf(w, "version: %s\n", version)
+	// Create a fixed-format JSON response from a string.
+	js := `{"status": "available", "environment": %q, "version": %q}`
+	js = fmt.Sprintf(js, app.config.env, version)
+
+	// Set the "Content-Type: application/json" header on the response.
+	w.Header().Set("Content-Type", "application/json")
+
+	// Write the JSON as the HTTP response body.
+	w.Write([]byte(js))
 }
