@@ -16,8 +16,12 @@ type Movie struct {
 	CreatedAt time.Time `json:"-"`
 	Title     string    `json:"title"`
 	Year      int32     `json:"year,omitempty"`
-	Runtime   int32     `json:"runtime,omitempty"` // in minutes
-	Genres    []string  `json:"genres,omitempty"`
+	// Use the Runtime type instead of int32. Note that the omitempty directive will
+	// still work on this: if the Runtime field has the underlying value 0, then
+	// it will be considered empty and omitted -- and the MarshalJSON() method
+	// won't be called at all.
+	Runtime Runtime  `json:"runtime,omitempty"`
+	Genres  []string `json:"genres,omitempty"`
 	// The version number starts at 1 and will be incremented each time
 	// the movie information is updated
 	Version int32 `json:"version"`
