@@ -15,8 +15,10 @@ gives us more flexibility.
 package data
 
 import (
+	"database/sql"
 	"time"
 
+	"github.com/lib/pq"
 	"greenlight.mazavrbazavr.ru/internal/validator"
 )
 
@@ -61,4 +63,46 @@ func ValidateMovie(v *validator.Validator, movie *Movie) {
 		"genres",
 		"must not contain duplicate values",
 	)
+}
+
+// A MovieModel struct type which wraps a sql.DB connection pool.
+type MovieModel struct {
+	DB *sql.DB
+}
+
+// The Insert() method accepts a pointer to a movie struct, which should contain the
+// data for the new record.
+func (m MovieModel) Insert(movie *Movie) error {
+	// Define the SQL query for inserting a new record in the movies table and returning
+	// the system-generated data.
+	query := `
+        INSERT INTO movies (title, year, runtime, genres) 
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, created_at, version`
+
+	// Create an args slice containing the values for the placeholder parameters from
+	// the movie struct. Declaring this slice immediately next to our SQL query helps to
+	// make it nice and clear *what values are being used where* in the query.
+	args := []any{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres)}
+
+	// Use the QueryRow() method to execute the SQL query on our connection pool,
+	// passing in the args slice as a variadic parameter and scanning the system-
+	// generated id, created_at and version values into the movie struct.
+	return m.DB.QueryRow(query, args...).
+		Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
+}
+
+// A placeholder method for fetching a specific record from the movies table.
+func (m MovieModel) Get(id int64) (*Movie, error) {
+	return nil, nil
+}
+
+// A placeholder method for updating a specific record in the movies table.
+func (m MovieModel) Update(movie *Movie) error {
+	return nil
+}
+
+// A placeholder method for deleting a specific record from the movies table.
+func (m MovieModel) Delete(id int64) error {
+	return nil
 }

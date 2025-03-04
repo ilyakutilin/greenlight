@@ -11,6 +11,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"greenlight.mazavrbazavr.ru/internal/data"
 )
 
 // Temporary hard-coded global constant containing the application version number.
@@ -32,6 +33,7 @@ type config struct {
 type application struct {
 	config config
 	logger *log.Logger
+	models data.Models
 }
 
 func main() {
@@ -95,11 +97,12 @@ func main() {
 	// established.
 	logger.Printf("database connection pool established")
 
-	// Declare an instance of the application struct, containing the config struct and
-	// the logger.
+	// Use the data.NewModels() function to initialize a Models struct, passing in the
+	// connection pool as a parameter.
 	app := &application{
 		config: cfg,
 		logger: logger,
+		models: data.NewModels(db),
 	}
 
 	// Declare a HTTP server with some sensible timeout settings, which listens on the
