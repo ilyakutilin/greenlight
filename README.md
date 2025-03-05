@@ -7,8 +7,9 @@ Greenlight is a JSON API for retrieving and managing information about movies. I
 - Retrieve movie details
 - Add, update, and delete movie entries
 - Filtering, sorting, searching, pagination
-- Authentication and authorization
 - Request validation
+- Authentication and authorization
+- Rate limiting
 - Logging and error handling
 
 ## Table of Contents
