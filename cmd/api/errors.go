@@ -7,7 +7,10 @@ import (
 
 // A generic helper for logging an error message. Method of the application struct.
 func (app *application) logError(r *http.Request, err error) {
-	app.logger.Print(err)
+	app.logger.PrintError(err, map[string]string{
+		"request_method": r.Method,
+		"request_url":    r.URL.String(),
+	})
 }
 
 // A generic helper for sending JSON-formatted error messages to the client
