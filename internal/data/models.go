@@ -11,9 +11,9 @@ var (
 	ErrEditConflict   = errors.New("edit conflict")
 )
 
-// A Models struct which wraps the MovieModel.
 type Models struct {
 	Movies MovieModel
+	Users  UserModel
 }
 
 // A New() method which returns a Models struct containing the initialized MovieModel
@@ -21,5 +21,6 @@ type Models struct {
 func NewModels(db *sql.DB) Models {
 	return Models{
 		Movies: MovieModel{DB: db},
+		Users:  UserModel{DB: db},
 	}
 }
