@@ -1,12 +1,43 @@
 package data
 
-import "greenlight.mazavrbazavr.ru/internal/validator"
+import (
+	"strings"
+
+	"slices"
+
+	"greenlight.mazavrbazavr.ru/internal/validator"
+)
 
 type Filters struct {
 	Page         int
 	PageSize     int
 	Sort         string
 	SortSafelist []string // holds the supported sort values
+}
+
+// Checks that the client-provided Sort field matches one of the entries in our safelist
+// and if it does, extracts the column name from the Sort field by stripping the leading
+// hyphen character (if one exists).
+func (f Filters) sortColumn() string {
+	if slices.Contains(f.SortSafelist, f.Sort) {
+		return strings.TrimPrefix(f.Sort, "-")
+	}
+
+	// Panic if the client-provided Sort value doesn’t match one of the entries
+	// in the safelist. In theory this shouldn’t happen — the Sort value should have
+	// already been checked by calling the ValidateFilters() function — but this is
+	// a sensible failsafe to help stop a SQL injection attack occurring.
+	panic("unsafe sort parameter: " + f.Sort)
+}
+
+// Returns the sort direction ("ASC" or "DESC") depending on the prefix character of the
+// Sort field.
+func (f Filters) sortDirection() string {
+	if strings.HasPrefix(f.Sort, "-") {
+		return "DESC"
+	}
+
+	return "ASC"
 }
 
 // Checks that the Filters struct contains valid values.
