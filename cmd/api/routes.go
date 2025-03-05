@@ -30,7 +30,11 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.updateMovieHandler)
 	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.deleteMovieHandler)
 
-	// Return the httprouter instance, wrapping the router with the panic recovery
-	// middleware.
-	return app.recoverPanic(router)
+	// Return the httprouter instance.
+	// Middlewares:
+	// - Panic recovery middleware;
+	// - Rate limit middleware - comes after our panic recovery middleware (so that any
+	//   panics in rateLimit() are recovered), but otherwise we want it to be used as
+	//   early as possible to prevent unnecessary work for our server.
+	return app.recoverPanic(app.rateLimit(router))
 }
