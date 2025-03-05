@@ -1,3 +1,18 @@
+/*
+NOTE FOR THE RATE LIMITING MIDDLEWARE
+
+Using the rate-limiting pattern provided in this package will only work if the API
+application is running on a single-machine. If the infrastructure is distributed, with
+the application running on multiple servers behind a load balancer, then an alternative
+approach is required.
+
+If HAProxy or Nginx as a load balancer or reverse proxy are used, both of these have
+built-in functionality for rate limiting that it would probably be sensible to use.
+Alternatively, it is possible to use a fast database like Redis to maintain a request
+count for clients, running on a server which all the application servers can communicate
+with.
+*/
+
 package main
 
 import (
@@ -5,6 +20,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 
 	"golang.org/x/time/rate"
 )
@@ -38,14 +54,42 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 
 // Middleware to enforce an IP-based rate limit.
 func (app *application) rateLimit(next http.Handler) http.Handler {
-	// Initialize a new rate limiter which allows an average of 2 requests per second,
-	// with a maximum of 4 requests in a single ‘burst’.
+	// Define a client struct to hold the rate limiter and last seen time for each
+	// client.
+	type client struct {
+		limiter  *rate.Limiter
+		lastSeen time.Time
+	}
 
 	// Declare a mutex and a map to hold the clients' IP addresses and rate limiters.
 	var (
-		mu      sync.Mutex
-		clients = make(map[string]*rate.Limiter)
+		mu sync.Mutex
+		// The values of the map are pointers to a client struct.
+		clients = make(map[string]*client)
 	)
+
+	// Launch a background goroutine which removes old entries from the clients map once
+	// every minute.
+	go func() {
+		for {
+			time.Sleep(time.Minute)
+
+			// Lock the mutex to prevent any rate limiter checks from happening while
+			// the cleanup is taking place.
+			mu.Lock()
+
+			// Loop through all clients. If they haven't been seen within the last three
+			// minutes, delete the corresponding entry from the map.
+			for ip, client := range clients {
+				if time.Since(client.lastSeen) > 3*time.Minute {
+					delete(clients, ip)
+				}
+			}
+
+			// IMPORTANT: Unlock the mutex when the cleanup is complete.
+			mu.Unlock()
+		}
+	}()
 
 	// The function we are returning is a closure.
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -64,15 +108,19 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 		// per second, with a maximum of 4 requests in a single ‘burst’, and add
 		// the IP address and limiter to the map.
 		if _, found := clients[ip]; !found {
-			clients[ip] = rate.NewLimiter(2, 4)
+			// Create and add a new client struct to the map if it doesn't already exist
+			clients[ip] = &client{limiter: rate.NewLimiter(2, 4)}
 		}
+
+		// Update the last seen time for the client.
+		clients[ip].lastSeen = time.Now()
 
 		// Call the Allow() method on the rate limiter for the current IP address
 		// to see if the request is permitted, and if it's not, unlock the mutex and
 		// call the rateLimitExceededResponse() helper to return a 429 Too Many
 		// Requests response. The code behind the Allow() method is protected by
 		// a mutex and is safe for concurrent use.
-		if !clients[ip].Allow() {
+		if !clients[ip].limiter.Allow() {
 			mu.Unlock()
 			app.rateLimitExceededResponse(w, r)
 			return
