@@ -40,6 +40,16 @@ func (f Filters) sortDirection() string {
 	return "ASC"
 }
 
+// Get the DB LIMIT value.
+func (f Filters) limit() int {
+	return f.PageSize
+}
+
+// Get the DB OFFSET value.
+func (f Filters) offset() int {
+	return (f.Page - 1) * f.PageSize
+}
+
 // Checks that the Filters struct contains valid values.
 func ValidateFilters(v *validator.Validator, f Filters) {
 	// Check that the page and page_size parameters contain sensible values.
