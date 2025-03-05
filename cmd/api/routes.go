@@ -7,7 +7,9 @@ import (
 )
 
 // Defines routes used by the project. A method of the applcation struct.
-func (app *application) routes() *httprouter.Router {
+// Returns a http.Handler instead of a *httprouter.Router due to the use of
+// the panic recovery middleware.
+func (app *application) routes() http.Handler {
 	// Initialize a new httprouter router instance.
 	router := httprouter.New()
 
@@ -28,6 +30,7 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.updateMovieHandler)
 	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.deleteMovieHandler)
 
-	// Return the httprouter instance.
-	return router
+	// Return the httprouter instance, wrapping the router with the panic recovery
+	// middleware.
+	return app.recoverPanic(router)
 }
