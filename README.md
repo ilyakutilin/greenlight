@@ -126,6 +126,9 @@ The following flags can be used when launching the application:
 | -db-max-open-conns | integer                              | 25                |
 | -db-max-idle-conns | integer                              | 25                |
 | -db-max-idle-time  | %dm                                  | 15m               |
+| -limiter-rps       | integer                              | 2                 |
+| -limiter-burst     | integer                              | 4                 |
+| -limiter-enabled   | true \| false                        | true              |
 
 ## License
 
