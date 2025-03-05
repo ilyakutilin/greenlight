@@ -8,6 +8,7 @@ import (
 // A custom ErrRecordNotFound error.
 var (
 	ErrRecordNotFound = errors.New("record not found")
+	ErrEditConflict   = errors.New("edit conflict")
 )
 
 // A Models struct which wraps the MovieModel.
