@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+	"greenlight.mazavrbazavr.ru/internal/validator"
 )
 
 // Define a User struct to represent an individual user. We are using the json:"-"
@@ -58,4 +59,50 @@ func (p *password) Matches(plaintextPassword string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// Checks that an email address is formatted correctly.
+func ValidateEmail(v *validator.Validator, email string) {
+	v.Check(email != "", "email", "must be provided")
+	v.Check(
+		validator.Matches(email, validator.EmailRX),
+		"email",
+		"must be a valid email address",
+	)
+}
+
+// Checks that a plaintext password is not too short, not too long, or empty.
+// When creating a bcrypt hash the input is truncated to a maximum of 72 bytes.
+// So, if someone uses a very long password, it means that any bytes after that would
+// effectively be ignored when creating the hash. To avoid any confusion for users,
+// we’ll simply enforce a hard maximum length of 72 bytes on the password in our
+// validation checks.
+func ValidatePasswordPlaintext(v *validator.Validator, password string) {
+	v.Check(password != "", "password", "must be provided")
+	v.Check(len(password) >= 8, "password", "must be at least 8 bytes long")
+	v.Check(len(password) <= 72, "password", "must not be more than 72 bytes long")
+}
+
+// Checks that the User struct contains valid data.
+func ValidateUser(v *validator.Validator, user *User) {
+	v.Check(user.Name != "", "name", "must be provided")
+	v.Check(len(user.Name) <= 500, "name", "must not be more than 500 bytes long")
+
+	// Call the standalone ValidateEmail() helper.
+	ValidateEmail(v, user.Email)
+
+	// If the plaintext password is not nil, call the standalone
+	// ValidatePasswordPlaintext() helper.
+	if user.Password.plaintext != nil {
+		ValidatePasswordPlaintext(v, *user.Password.plaintext)
+	}
+
+	// If the password hash is ever nil, this will be due to a logic error in our
+	// codebase (probably because we forgot to set a password for the user). It's a
+	// useful sanity check to include here, but it's not a problem with the data
+	// provided by the client. So rather than adding an error to the validation map we
+	// raise a panic instead.
+	if user.Password.hash == nil {
+		panic("missing password hash for user")
+	}
 }
