@@ -41,6 +41,7 @@ func (app *application) routes() http.Handler {
 	// - Panic recovery middleware;
 	// - Rate limit middleware - comes after our panic recovery middleware (so that any
 	//   panics in rateLimit() are recovered), but otherwise we want it to be used as
-	//   early as possible to prevent unnecessary work for our server.
-	return app.recoverPanic(app.rateLimit(router))
+	//   early as possible to prevent unnecessary work for our server;
+	// - Authentication middleware.
+	return app.recoverPanic(app.rateLimit(app.authenticate(router)))
 }

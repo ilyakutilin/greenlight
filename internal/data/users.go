@@ -16,6 +16,8 @@ var (
 	ErrDuplicateEmail = errors.New("duplicate email")
 )
 
+var AnonymousUser = &User{}
+
 // Define a User struct to represent an individual user. We are using the json:"-"
 // struct tag to prevent the Password and Version fields appearing in any output when we
 // encode it to JSON. Also notice that the Password field uses the custom password type
@@ -28,6 +30,11 @@ type User struct {
 	Password  password  `json:"-"`
 	Activated bool      `json:"activated"`
 	Version   int       `json:"-"`
+}
+
+// Checks if a User instance is the AnonymousUser.
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
 }
 
 // A custom password type which is a struct containing the plaintext and hashed
