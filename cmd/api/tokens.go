@@ -10,10 +10,7 @@ import (
 )
 
 // Handler for the "POST /v1/tokens/activation" endpoint.
-func (app *application) createActivationTokenHandler(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+func (app *application) createActivationTokenHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse and validate the user's email address.
 	var input struct {
 		Email string `json:"email"`

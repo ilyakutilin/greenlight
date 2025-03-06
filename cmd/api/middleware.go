@@ -113,10 +113,7 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 				// Create and add a new client struct to the map if it doesn't exist.
 				// Use the requests-per-second and burst values from the config struct.
 				clients[ip] = &client{
-					limiter: rate.NewLimiter(
-						rate.Limit(app.config.limiter.rps),
-						app.config.limiter.burst,
-					),
+					limiter: rate.NewLimiter(rate.Limit(app.config.limiter.rps), app.config.limiter.burst),
 				}
 			}
 

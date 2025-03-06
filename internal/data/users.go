@@ -72,11 +72,7 @@ func (p *password) Matches(plaintextPassword string) (bool, error) {
 // Checks that an email address is formatted correctly.
 func ValidateEmail(v *validator.Validator, email string) {
 	v.Check(email != "", "email", "must be provided")
-	v.Check(
-		validator.Matches(email, validator.EmailRX),
-		"email",
-		"must be a valid email address",
-	)
+	v.Check(validator.Matches(email, validator.EmailRX), "email", "must be a valid email address")
 }
 
 // Checks that a plaintext password is not too short, not too long, or empty.

@@ -60,11 +60,7 @@ func ValidateFilters(v *validator.Validator, f Filters) {
 	v.Check(f.PageSize <= 100, "page_size", "must be a maximum of 100")
 
 	// Check that the sort parameter matches a value in the safelist.
-	v.Check(
-		validator.PermittedValue(f.Sort, f.SortSafelist...),
-		"sort",
-		"invalid sort value",
-	)
+	v.Check(validator.PermittedValue(f.Sort, f.SortSafelist...), "sort", "invalid sort value")
 }
 
 // Metadata struct for holding the pagination metadata.

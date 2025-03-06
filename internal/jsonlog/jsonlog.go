@@ -76,11 +76,7 @@ func (l *Logger) PrintFatal(err error, properties map[string]string) {
 }
 
 // Internal method for writing the log entry.
-func (l *Logger) print(
-	level Level,
-	message string,
-	properties map[string]string,
-) (int, error) {
+func (l *Logger) print(level Level, message string, properties map[string]string) (int, error) {
 	// If the severity level of the log entry is below the minimum severity for the
 	// logger, then return with no further action.
 	if level < l.minLevel {
@@ -114,9 +110,7 @@ func (l *Logger) print(
 	// plain-text error message instead.
 	line, err := json.Marshal(aux)
 	if err != nil {
-		line = []byte(
-			LevelError.String() + ": unable to marshal log message: " + err.Error(),
-		)
+		line = []byte(LevelError.String() + ": unable to marshal log message: " + err.Error())
 	}
 
 	// Lock the mutex so that no two writes to the output destination can happen

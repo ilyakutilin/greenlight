@@ -61,11 +61,7 @@ func ValidateMovie(v *validator.Validator, movie *Movie) {
 	v.Check(movie.Genres != nil, "genres", "must be provided")
 	v.Check(len(movie.Genres) >= 1, "genres", "must contain at least 1 genre")
 	v.Check(len(movie.Genres) <= 5, "genres", "must not contain more than 5 genres")
-	v.Check(
-		validator.Unique(movie.Genres),
-		"genres",
-		"must not contain duplicate values",
-	)
+	v.Check(validator.Unique(movie.Genres), "genres", "must not contain duplicate values")
 }
 
 // A MovieModel struct type which wraps a sql.DB connection pool.
@@ -248,11 +244,7 @@ func (m MovieModel) Delete(id int64) error {
 // The GetAll() method accepts the filter and sort parameters, fetches
 // the list of records from the database and returns a slice of pointers
 // to the Movie struct and the pagination Metadata struct.
-func (m MovieModel) GetAll(
-	title string,
-	genres []string,
-	filters Filters,
-) ([]*Movie, Metadata, error) {
+func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, Metadata, error) {
 	// Construct the SQL query to retrieve all movie records with filter conditions
 	// and full-text search for the title filter.
 	// Add an ORDER BY clause and interpolate the sort column and direction.

@@ -46,12 +46,7 @@ type envelope map[string]any
 // the HTTP status code to send, the enveloped data to encode to JSON, and a header map
 // containing any additional HTTP headers we want to include in the response.
 // A method of the application struct.
-func (app *application) writeJSON(
-	w http.ResponseWriter,
-	status int,
-	data envelope,
-	headers http.Header,
-) error {
+func (app *application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 	// Encode the data to JSON, returning the error if there was one.
 	// Use the json.MarshalIndent() function so that whitespace is added to the encoded
 	// JSON. Here we use no line prefix ("") and tab indents ("\t") for each element.
@@ -80,11 +75,7 @@ func (app *application) writeJSON(
 // A helper that decodes the JSON from the request body as normal, then triages
 // the errors and replaces them with our own custom messages as necessary.
 // A method of the application struct.
-func (app *application) readJSON(
-	w http.ResponseWriter,
-	r *http.Request,
-	dst any,
-) error {
+func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	// Use http.MaxBytesReader() to limit the size of the request body to 1MB.
 	maxBytes := 1_048_576
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
@@ -111,10 +102,7 @@ func (app *application) readJSON(
 		// *json.SyntaxError. If it does, then return a plain-english error message
 		// which includes the location of the problem.
 		case errors.As(err, &syntaxError):
-			return fmt.Errorf(
-				"body contains badly-formed JSON (at character %d)",
-				syntaxError.Offset,
-			)
+			return fmt.Errorf("body contains badly-formed JSON (at character %d)", syntaxError.Offset)
 
 		// In some circumstances Decode() may also return an io.ErrUnexpectedEOF error
 		// for syntax errors in the JSON. So we check for this using errors.Is() and
@@ -129,15 +117,9 @@ func (app *application) readJSON(
 		// easier for the client to debug.
 		case errors.As(err, &unmarshalTypeError):
 			if unmarshalTypeError.Field != "" {
-				return fmt.Errorf(
-					"body contains incorrect JSON type for field %q",
-					unmarshalTypeError.Field,
-				)
+				return fmt.Errorf("body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
 			}
-			return fmt.Errorf(
-				"body contains incorrect JSON type (at character %d)",
-				unmarshalTypeError.Offset,
-			)
+			return fmt.Errorf("body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
 
 		// An io.EOF error will be returned by Decode() if the request body is empty. We
 		// check for this with errors.Is() and return a plain-english error message
@@ -159,10 +141,7 @@ func (app *application) readJSON(
 		// *http.MaxBytesError. If it does, then it means the request body exceeded our
 		// size limit and we return a clear error message.
 		case errors.As(err, &maxBytesError):
-			return fmt.Errorf(
-				"body must not be larger than %d bytes",
-				maxBytesError.Limit,
-			)
+			return fmt.Errorf("body must not be larger than %d bytes", maxBytesError.Limit)
 
 		// A json.InvalidUnmarshalError error will be returned if we pass something
 		// that is not a non-nil pointer to Decode(). We catch this and panic,
@@ -190,11 +169,7 @@ func (app *application) readJSON(
 
 // A helper that returns a string value from the query string (qs), or the provided
 // default value if no matching key could be found.
-func (app *application) readString(
-	qs url.Values,
-	key string,
-	defaultValue string,
-) string {
+func (app *application) readString(qs url.Values, key string, defaultValue string) string {
 	// Extract the value for a given key from the query string. If no key exists this
 	// will return the empty string "".
 	s := qs.Get(key)
@@ -211,11 +186,7 @@ func (app *application) readString(
 // A helper that reads a string value from the query string (qs) and then splits it
 // into a slice on the comma character. If no matching key could be found, it returns
 // the provided default value.
-func (app *application) readCSV(
-	qs url.Values,
-	key string,
-	defaultValue []string,
-) []string {
+func (app *application) readCSV(qs url.Values, key string, defaultValue []string) []string {
 	// Extract the value from the query string.
 	csv := qs.Get(key)
 
@@ -232,12 +203,7 @@ func (app *application) readCSV(
 // integer before returning. If no matching key could be found it returns the provided
 // default value. If the value couldn't be converted to an integer, then we record an
 // error message in the provided Validator (v) instance.
-func (app *application) readInt(
-	qs url.Values,
-	key string,
-	defaultValue int,
-	v *validator.Validator,
-) int {
+func (app *application) readInt(qs url.Values, key string, defaultValue int, v *validator.Validator) int {
 	// Extract the value from the query string.
 	s := qs.Get(key)
 

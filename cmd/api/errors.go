@@ -15,12 +15,7 @@ func (app *application) logError(r *http.Request, err error) {
 
 // A generic helper for sending JSON-formatted error messages to the client
 // with a given status code. Method of the application struct.
-func (app *application) errorResponse(
-	w http.ResponseWriter,
-	r *http.Request,
-	status int,
-	message any,
-) {
+func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
 	env := envelope{"error": message}
 
 	// Write the response using the writeJSON() helper. If this happens to return an
@@ -37,11 +32,7 @@ func (app *application) errorResponse(
 // It logs the detailed error message, then uses the errorResponse() helper
 // to send a 500 Internal Server Error status code and JSON response
 // (containing a generic error message) to the client. Method of the application struct.
-func (app *application) serverErrorResponse(
-	w http.ResponseWriter,
-	r *http.Request,
-	err error,
-) {
+func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logError(r, err)
 
 	message := "the server encountered a problem and could not process your request"
@@ -57,21 +48,14 @@ func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request)
 
 // Used to send a 405 Method Not Allowed status code and JSON response to the client.
 // Method of the application struct.
-func (app *application) methodNotAllowedResponse(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+func (app *application) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
 	message := fmt.Sprintf("the %s method is not supported for this resource", r.Method)
 	app.errorResponse(w, r, http.StatusMethodNotAllowed, message)
 }
 
 // Used to send a 400 Bad Request status code and JSON response to the client.
 // Method of the application struct.
-func (app *application) badRequestResponse(
-	w http.ResponseWriter,
-	r *http.Request,
-	err error,
-) {
+func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
 }
 
@@ -79,11 +63,7 @@ func (app *application) badRequestResponse(
 // Method of the application struct.
 // Note that the errors parameter here has the type map[string]string, which is exactly
 // the same as the errors map contained in the Validator type.
-func (app *application) failedValidationResponse(
-	w http.ResponseWriter,
-	r *http.Request,
-	errors map[string]string,
-) {
+func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
 	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
 }
 
@@ -96,10 +76,7 @@ func (app *application) editConflictResponse(w http.ResponseWriter, r *http.Requ
 
 // Used to send a 429 Too Many Requests status code if the rate limit is exceeded
 // and JSON response to the client. Method of the application struct.
-func (app *application) rateLimitExceededResponse(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+func (app *application) rateLimitExceededResponse(w http.ResponseWriter, r *http.Request) {
 	message := "rate limit exceeded"
 	app.errorResponse(w, r, http.StatusTooManyRequests, message)
 }

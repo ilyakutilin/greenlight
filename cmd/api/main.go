@@ -59,48 +59,18 @@ func main() {
 
 	// Read the value of the port and env command-line flags into the config struct.
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
-	flag.StringVar(
-		&cfg.env,
-		"env",
-		"development",
-		"Environment (development|staging|production)",
-	)
+	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 	// Read the DSN value from the db-dsn command-line flag into the config struct. We
 	// default to using the GREENLIGHT_DB_DSN environment variable if no flag
 	// is provided.
-	flag.StringVar(
-		&cfg.db.dsn,
-		"db-dsn",
-		os.Getenv("GREENLIGHT_DB_DSN"),
-		"PostgreSQL DSN",
-	)
-	flag.IntVar(
-		&cfg.db.maxOpenConns,
-		"db-max-open-conns",
-		25,
-		"PostgreSQL max open connections",
-	)
-	flag.IntVar(
-		&cfg.db.maxIdleConns,
-		"db-max-idle-conns",
-		25,
-		"PostgreSQL max idle connections",
-	)
-	flag.StringVar(
-		&cfg.db.maxIdleTime,
-		"db-max-idle-time",
-		"15m",
-		"PostgreSQL max connection idle time",
-	)
+	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
+	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
+	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
+	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
 
 	// Rate limiting
 
-	flag.Float64Var(
-		&cfg.limiter.rps,
-		"limiter-rps",
-		2,
-		"Rate limiter maximum requests per second",
-	)
+	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
 	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
 
@@ -108,24 +78,10 @@ func main() {
 	// Mailtrap settings as the default values.
 	flag.StringVar(&cfg.smtp.host, "smtp-host", "sandbox.smtp.mailtrap.io", "SMTP host")
 	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
-	flag.StringVar(
-		&cfg.smtp.username,
-		"smtp-username",
-		"1bf279a820e508",
-		"SMTP username",
-	)
-	flag.StringVar(
-		&cfg.smtp.password,
-		"smtp-password",
-		"3f2c435b31834b",
-		"SMTP password",
-	)
-	flag.StringVar(
-		&cfg.smtp.sender,
-		"smtp-sender",
-		"Greenlight <no-reply@greenlight.mazavrbazavr.ru>",
-		"SMTP sender",
-	)
+	flag.StringVar(&cfg.smtp.username, "smtp-username", "1bf279a820e508", "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "3f2c435b31834b", "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.mazavrbazavr.ru>", "SMTP sender")
+
 	flag.Parse()
 
 	// Initialize a new jsonlog.Logger which writes any messages *at or above* the INFO
@@ -152,13 +108,7 @@ func main() {
 		config: cfg,
 		logger: logger,
 		models: data.NewModels(db),
-		mailer: mailer.New(
-			cfg.smtp.host,
-			cfg.smtp.port,
-			cfg.smtp.username,
-			cfg.smtp.password,
-			cfg.smtp.sender,
-		),
+		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
 	}
 
 	// Call app.serve() to start the server.

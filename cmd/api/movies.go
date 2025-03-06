@@ -224,12 +224,7 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Return a 200 OK status code along with a success message.
-	err = app.writeJSON(
-		w,
-		http.StatusOK,
-		envelope{"message": "movie successfully deleted"},
-		nil,
-	)
+	err = app.writeJSON(w, http.StatusOK, envelope{"message": "movie successfully deleted"}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -268,16 +263,7 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 	// by the client (which will imply a ascending sort on movie ID).
 	input.Filters.Sort = app.readString(qs, "sort", "id")
 	// Add the supported sort values for this endpoint to the sort safelist.
-	input.Filters.SortSafelist = []string{
-		"id",
-		"title",
-		"year",
-		"runtime",
-		"-id",
-		"-title",
-		"-year",
-		"-runtime",
-	}
+	input.Filters.SortSafelist = []string{"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime"}
 
 	// Execute the validation checks on the Filters struct and send a response
 	// containing the errors if necessary.
@@ -288,23 +274,14 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 
 	// Call the GetAll() method to retrieve the movies, passing in the various filter
 	// parameters.
-	movies, metadata, err := app.models.Movies.GetAll(
-		input.Title,
-		input.Genres,
-		input.Filters,
-	)
+	movies, metadata, err := app.models.Movies.GetAll(input.Title, input.Genres, input.Filters)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
 	// Send a JSON response containing the movie data.
-	err = app.writeJSON(
-		w,
-		http.StatusOK,
-		envelope{"movies": movies, "metadata": metadata},
-		nil,
-	)
+	err = app.writeJSON(w, http.StatusOK, envelope{"movies": movies, "metadata": metadata}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
