@@ -257,3 +257,20 @@ func (app *application) readInt(
 	// Otherwise, return the converted integer value.
 	return i
 }
+
+// The background() helper accepts an arbitrary function as a parameter and executes it
+// in the backgound goroutine, recovering from panics if any.
+func (app *application) background(fn func()) {
+	// Launch a background goroutine.
+	go func() {
+		// Recover any panic.
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.PrintError(fmt.Errorf("%s", err), nil)
+			}
+		}()
+
+		// Execute the arbitrary function that we passed as the parameter.
+		fn()
+	}()
+}
