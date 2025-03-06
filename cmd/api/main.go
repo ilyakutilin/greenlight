@@ -10,6 +10,7 @@ import (
 	_ "github.com/lib/pq"
 	"greenlight.mazavrbazavr.ru/internal/data"
 	"greenlight.mazavrbazavr.ru/internal/jsonlog"
+	"greenlight.mazavrbazavr.ru/internal/mailer"
 )
 
 // Temporary hard-coded global constant containing the application version number.
@@ -33,6 +34,13 @@ type config struct {
 		burst   int
 		enabled bool
 	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
+	}
 }
 
 // Struct to hold the dependencies for HTTP handlers, helpers, and middleware.
@@ -40,6 +48,7 @@ type application struct {
 	config config
 	logger *jsonlog.Logger
 	models data.Models
+	mailer mailer.Mailer
 }
 
 func main() {
@@ -92,6 +101,29 @@ func main() {
 	)
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
 	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
+
+	// Read the SMTP server configuration settings into the config struct, using the
+	// Mailtrap settings as the default values.
+	flag.StringVar(&cfg.smtp.host, "smtp-host", "sandbox.smtp.mailtrap.io", "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
+	flag.StringVar(
+		&cfg.smtp.username,
+		"smtp-username",
+		"1bf279a820e508",
+		"SMTP username",
+	)
+	flag.StringVar(
+		&cfg.smtp.password,
+		"smtp-password",
+		"3f2c435b31834b",
+		"SMTP password",
+	)
+	flag.StringVar(
+		&cfg.smtp.sender,
+		"smtp-sender",
+		"Greenlight <no-reply@greenlight.mazavrbazavr.ru>",
+		"SMTP sender",
+	)
 	flag.Parse()
 
 	// Initialize a new jsonlog.Logger which writes any messages *at or above* the INFO
@@ -114,12 +146,17 @@ func main() {
 	// established.
 	logger.PrintInfo("database connection pool established", nil)
 
-	// Use the data.NewModels() function to initialize a Models struct, passing in the
-	// connection pool as a parameter.
 	app := &application{
 		config: cfg,
 		logger: logger,
 		models: data.NewModels(db),
+		mailer: mailer.New(
+			cfg.smtp.host,
+			cfg.smtp.port,
+			cfg.smtp.username,
+			cfg.smtp.password,
+			cfg.smtp.sender,
+		),
 	}
 
 	// Call app.serve() to start the server.
