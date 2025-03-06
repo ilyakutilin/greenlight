@@ -215,22 +215,32 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 	})
 }
 
-// Middleware to require that a user is authenticated and activated.
-// accepts and returns a http.HandlerFunc instead of http.Handler, which makes it
+// Middleware to check that a user is not anonymous.
+// Accepts and returns a http.HandlerFunc instead of http.Handler, which makes it
 // possible to wrap our the handler functions directly with this middleware, without
 // needing to make any further conversions.
-func (app *application) requireActivatedUser(next http.HandlerFunc) http.HandlerFunc {
+func (app *application) requireAuthenticatedUser(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Use the contextGetUser() helper to retrieve the user information from the
-		// request context.
 		user := app.contextGetUser(r)
 
-		// If the user is anonymous, then call the authenticationRequiredResponse() to
-		// inform the client that they should authenticate before trying again.
 		if user.IsAnonymous() {
 			app.authenticationRequiredResponse(w, r)
 			return
 		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// Middleware that checks that a user is both authenticated and activated.
+// Accepts and returns a http.HandlerFunc instead of http.Handler, which makes it
+// possible to wrap our the handler functions directly with this middleware, without
+// needing to make any further conversions.
+func (app *application) requireActivatedUser(next http.HandlerFunc) http.HandlerFunc {
+	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Use the contextGetUser() helper to retrieve the user information from the
+		// request context.
+		user := app.contextGetUser(r)
 
 		// If the user is not activated, use the inactiveAccountResponse() helper to
 		// inform them that they need to activate their account.
@@ -242,4 +252,7 @@ func (app *application) requireActivatedUser(next http.HandlerFunc) http.Handler
 		// Call the next handler in the chain.
 		next.ServeHTTP(w, r)
 	})
+
+	// Wrap fn with the requireAuthenticatedUser() middleware before returning it.
+	return app.requireAuthenticatedUser(fn)
 }
