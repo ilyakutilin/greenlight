@@ -11,6 +11,7 @@ Greenlight is a JSON API for retrieving and managing information about movies. I
 - Authentication and authorization
 - Rate limiting
 - Logging and error handling
+- Monitoring (metrics)
 
 ## Table of Contents
 
@@ -19,6 +20,7 @@ Greenlight is a JSON API for retrieving and managing information about movies. I
 - [Running the Application](#running-the-application)
 - [API Endpoints](#api-endpoints)
 - [Configuration](#configuration)
+- [Audit](#audit)
 - [License](#license)
 
 ## Installation
@@ -38,7 +40,7 @@ sudo mv migrate.linux-amd64 $GOPATH/bin/migrate
 
 replacing the \<version\> and the \<filename\> with the actual version and filename.
 
-- [Staticcheck](https://staticcheck.dev/)
+- [Staticcheck](https://staticcheck.dev/) (used during audits)
 
 ```sh
 go install honnef.co/go/tools/cmd/staticcheck@latest
@@ -84,9 +86,16 @@ Use [this web-based tool](https://pgtune.leopard.in.ua) to generate suggested `p
 
 ### 4. Set the Environment Variable
 
-Create a new `GREENLIGHT_DB_DSN` environment variable by adding the following line to your `$HOME/.profile` or `$HOME/.bashrc` or `$HOME/.zshrc` files:
+Create the `.envrc` file in the project root and open it:
 
 ```sh
+touch .envrc
+nano .envrc
+```
+
+Add the `GREENLIGHT_DB_DSN` environment variable and save the file:
+
+```
 export GREENLIGHT_DB_DSN='postgres://greenlight:pa55word@localhost/greenlight'
 ```
 
@@ -120,20 +129,20 @@ make run/api
 
 ## API Endpoints
 
-| Method | URL Pattern               | Action                                          |
-| ------ | ------------------------- | ----------------------------------------------- |
-| GET    | /v1/healthcheck           | Show application health and version information |
-| GET    | /v1/movies                | Show the details of all movies                  |
-| POST   | /v1/movies                | Create a new movie                              |
-| GET    | /v1/movies/:id            | Show the details of a specific movie            |
-| PATCH  | /v1/movies/:id            | Update the details of a specific movie          |
-| DELETE | /v1/movies/:id            | Delete a specific movie                         |
-| POST   | /v1/users                 | Register a new user                             |
-| PUT    | /v1/users/activated       | Activate a specific user                        |
-| PUT    | /v1/users/password        | Update the password for a specific user         |
-| POST   | /v1/tokens/authentication | Generate a new authentication token             |
-| POST   | /v1/tokens/password-reset | Generate a new password-reset token             |
-| GET    | /debug/vars               | Display application metrics                     |
+| Method   | URL Pattern                 | Action                                          |
+| -------- | --------------------------- | ----------------------------------------------- |
+| `GET`    | `/v1/healthcheck`           | Show application health and version information |
+| `GET`    | `/v1/movies`                | Show the details of all movies                  |
+| `POST`   | `/v1/movies`                | Create a new movie                              |
+| `GET`    | `/v1/movies/:id`            | Show the details of a specific movie            |
+| `PATCH`  | `/v1/movies/:id`            | Update the details of a specific movie          |
+| `DELETE` | `/v1/movies/:id`            | Delete a specific movie                         |
+| `POST`   | `/v1/users`                 | Register a new user                             |
+| `PUT`    | `/v1/users/activated`       | Activate a specific user                        |
+| `PUT`    | `/v1/users/password`        | Update the password for a specific user         |
+| `POST`   | `/v1/tokens/authentication` | Generate a new authentication token             |
+| `POST`   | `/v1/tokens/password-reset` | Generate a new password-reset token             |
+| `GET`    | `/debug/vars`               | Display application metrics                     |
 
 ## Configuration
 
@@ -141,21 +150,51 @@ The following flags can be used when launching the application:
 
 | flag                  | values                               | default                |
 | --------------------- | ------------------------------------ | ---------------------- |
-| -port                 | integer                              | 4000                   |
-| -env                  | development \| staging \| production | development            |
+| -port                 | integer                              | `4000`                 |
+| -env                  | development \| staging \| production | `development`          |
 | -db-dsn               | DSN URI                              | empty                  |
-| -db-max-open-conns    | integer                              | 25                     |
-| -db-max-idle-conns    | integer                              | 25                     |
-| -db-max-idle-time     | %dm                                  | 15m                    |
-| -limiter-rps          | integer                              | 2                      |
-| -limiter-burst        | integer                              | 4                      |
-| -limiter-enabled      | true \| false                        | true                   |
+| -db-max-open-conns    | integer                              | `25`                   |
+| -db-max-idle-conns    | integer                              | `25`                   |
+| -db-max-idle-time     | %dm                                  | `15m`                  |
+| -limiter-rps          | integer                              | `2`                    |
+| -limiter-burst        | integer                              | `4`                    |
+| -limiter-enabled      | true \| false                        | `true`                 |
 | -smtp-host            | string                               | dev smtp host          |
-| -smtp-port            | integer                              | 25                     |
+| -smtp-port            | integer                              | `25`                   |
 | -smtp-username        | string                               | dev smtp username      |
 | -smtp-password        | string                               | dev smtp password      |
 | -smtp-sender          | string                               | dev dummy sender email |
 | -cors-trusted-origins | space-separated list of URLs         | empty                  |
+
+## Audit
+
+Make sure that the [Staticcheck](https://staticcheck.dev/) is installed before launching audits.
+
+Launch audit:
+
+```sh
+make audit
+```
+
+Audit includes:
+
+- [`go mod tidy`](https://go.dev/ref/mod#go-mod-tidy)
+
+- [`go mod verify`](https://go.dev/ref/mod#go-mod-verify)
+
+- [`go mod vendor`](https://go.dev/ref/mod#go-mod-vendor)
+
+- [`go fmt ./...`](https://pkg.go.dev/cmd/go#hdr-Gofmt__reformat__package_sources)
+
+- [`go vet ./...`](https://pkg.go.dev/cmd/vet)
+
+- `go test -race -vet=off ./...` command to run all tests in the project directory. The `-race` flag enables Go’s race detector, which can help pick up certain classes of race conditions while tests are running.
+
+- third-party [`staticcheck`](https://staticcheck.dev/docs/running-staticcheck/cli/) tool to carry out some additional static analysis checks.
+
+==========
+
+Additionally, running `make vendor` regularly (and mandatorily after each install).
 
 ## License
 
