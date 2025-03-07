@@ -32,9 +32,11 @@ To run Greenlight, you need the following dependencies:
 For `Migrate` check the latest releases [here](https://github.com/golang-migrate/migrate/releases), then install like this:
 
 ```sh
-curl -L https://github.com/golang-migrate/migrate/releases/download/v4.14.1/migrate.linux-amd64.tar.gz | tar xvz
-mv migrate.linux-amd64 $GOPATH/bin/migrate
+curl -L https://github.com/golang-migrate/migrate/releases/download/<version>/<filename> | tar xvz
+sudo mv migrate.linux-amd64 $GOPATH/bin/migrate
 ```
+
+replacing the \<version\> and the \<filename\> with the actual version and filename.
 
 ## Setup
 
@@ -91,10 +93,22 @@ While in the project folder:
 migrate -path=./migrations -database=$GREENLIGHT_DB_DSN up
 ```
 
+or
+
+```sh
+make db/migrations/up
+```
+
 ## Running the Application
 
 ```sh
 go run ./cmd/api
+```
+
+or
+
+```sh
+make run/api
 ```
 
 ## API Endpoints
