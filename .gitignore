@@ -48,6 +48,3 @@ node_modules/
 
 ### Env ###
 .envrc
-
-### Vendor ###
-vendor/
