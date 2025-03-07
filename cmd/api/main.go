@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"expvar"
 	"flag"
+	"fmt"
 	"os"
 	"runtime"
 	"strings"
@@ -15,10 +16,13 @@ import (
 	"greenlight.mazavrbazavr.ru/internal/data"
 	"greenlight.mazavrbazavr.ru/internal/jsonlog"
 	"greenlight.mazavrbazavr.ru/internal/mailer"
+	"greenlight.mazavrbazavr.ru/internal/vcs"
 )
 
-// Temporary hard-coded global constant containing the application version number.
-const version = "1.0.0"
+// Application version.
+var (
+	version = vcs.Version()
+)
 
 // Config struct to hold all the configuration settings for the application.
 type config struct {
@@ -99,7 +103,16 @@ func main() {
 		return nil
 	})
 
+	displayVersion := flag.Bool("version", false, "Display version and exit")
+
 	flag.Parse()
+
+	// If the version flag value is true, then print out the version number and
+	// immediately exit.
+	if *displayVersion {
+		fmt.Printf("Version:\t%s\n", version)
+		os.Exit(0)
+	}
 
 	// Initialize a new jsonlog.Logger which writes any messages *at or above* the INFO
 	// severity level to the standard out stream.
