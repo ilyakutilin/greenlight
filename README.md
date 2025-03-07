@@ -118,22 +118,23 @@ go run ./cmd/api
 
 The following flags can be used when launching the application:
 
-| flag               | values                               | default                |
-| ------------------ | ------------------------------------ | ---------------------- |
-| -port              | integer                              | 4000                   |
-| -env               | development \| staging \| production | development            |
-| -db-dsn            | DSN URI                              | \<see DSN above\>      |
-| -db-max-open-conns | integer                              | 25                     |
-| -db-max-idle-conns | integer                              | 25                     |
-| -db-max-idle-time  | %dm                                  | 15m                    |
-| -limiter-rps       | integer                              | 2                      |
-| -limiter-burst     | integer                              | 4                      |
-| -limiter-enabled   | true \| false                        | true                   |
-| -smtp-host         | string                               | dev smtp host          |
-| -smtp-port         | integer                              | 25                     |
-| -smtp-username     | string                               | dev smtp username      |
-| -smtp-password     | string                               | dev smtp password      |
-| -smtp-sender       | string                               | dev dummy sender email |
+| flag                  | values                               | default                |
+| --------------------- | ------------------------------------ | ---------------------- |
+| -port                 | integer                              | 4000                   |
+| -env                  | development \| staging \| production | development            |
+| -db-dsn               | DSN URI                              | \<see DSN above\>      |
+| -db-max-open-conns    | integer                              | 25                     |
+| -db-max-idle-conns    | integer                              | 25                     |
+| -db-max-idle-time     | %dm                                  | 15m                    |
+| -limiter-rps          | integer                              | 2                      |
+| -limiter-burst        | integer                              | 4                      |
+| -limiter-enabled      | true \| false                        | true                   |
+| -smtp-host            | string                               | dev smtp host          |
+| -smtp-port            | integer                              | 25                     |
+| -smtp-username        | string                               | dev smtp username      |
+| -smtp-password        | string                               | dev smtp password      |
+| -smtp-sender          | string                               | dev dummy sender email |
+| -cors-trusted-origins | space-separated list of URLs         | empty                  |
 
 ## License
 
