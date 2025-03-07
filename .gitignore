@@ -45,3 +45,6 @@ tls/
 
 ### Node modules ###
 node_modules/
+
+### Env ###
+.envrc
