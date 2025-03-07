@@ -38,6 +38,13 @@ sudo mv migrate.linux-amd64 $GOPATH/bin/migrate
 
 replacing the \<version\> and the \<filename\> with the actual version and filename.
 
+- [Staticcheck](https://staticcheck.dev/)
+
+```sh
+go install honnef.co/go/tools/cmd/staticcheck@latest
+which staticcheck
+```
+
 ## Setup
 
 ### 1. Clone the Repository
