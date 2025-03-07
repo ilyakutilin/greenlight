@@ -26,6 +26,8 @@ func (app *application) routes() http.Handler {
 	// Register the relevant methods, URL patterns and handler functions for endpoints.
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 
+	// Handlers related to movies are wrapped by the corresponding Permission
+	// middlewares.
 	router.HandlerFunc(http.MethodGet, "/v1/movies", app.requirePermission("movies:read", app.listMoviesHandler))
 	router.HandlerFunc(http.MethodPost, "/v1/movies", app.requirePermission("movies:write", app.createMovieHandler))
 	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.requirePermission("movies:read", app.showMovieHandler))
@@ -42,11 +44,12 @@ func (app *application) routes() http.Handler {
 
 	// Return the httprouter instance.
 	// Middlewares:
+	// - Metrics middleware;
 	// - Panic recovery middleware;
 	// - CORS middleware;
 	// - Rate limit middleware - comes after our panic recovery middleware (so that any
 	//   panics in rateLimit() are recovered), but otherwise we want it to be used as
 	//   early as possible to prevent unnecessary work for our server;
 	// - Authentication middleware.
-	return app.recoverPanic(app.enableCORS(app.rateLimit(app.authenticate(router))))
+	return app.metrics(app.recoverPanic(app.enableCORS(app.rateLimit(app.authenticate(router)))))
 }
